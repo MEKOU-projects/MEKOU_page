@@ -2,10 +2,62 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 
 export default function Home() {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+  
+      let animationFrameId: number;
+  
+      const handleResize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      };
+      handleResize();
+      window.addEventListener("resize", handleResize);
+  
+      const lines = Array.from({ length: 40 }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        length: Math.random() * 50 + 10,
+        speed: Math.random() * 3 + 1.5,
+      }));
+  
+      const animate = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "rgba(139, 26, 26, 0.35)";
+        ctx.lineWidth = 1;
+  
+        lines.forEach((line) => {
+          ctx.beginPath();
+          ctx.moveTo(line.x, line.y);
+          ctx.lineTo(line.x, line.y + line.length);
+          ctx.stroke();
+  
+          line.y += line.speed;
+          if (line.y > canvas.height) {
+            line.y = -line.length;
+            line.x = Math.random() * canvas.width;
+          }
+        });
+  
+        animationFrameId = requestAnimationFrame(animate);
+      };
+  
+      animate();
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        cancelAnimationFrame(animationFrameId);
+      };
+    }, []);
+  
   const [darkMode, setDarkMode] = useState(true);
 
   return (
@@ -32,6 +84,10 @@ export default function Home() {
 
     {/* 鳥居全体を包む大きな箱 */}
 <div className="w-full max-w-md flex left flex flex-col items-center my-8">
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-0 pointer-events-none z-0"
+      />
 
   {/* 1. 笠木（一番上の横木：5pxの赤線） */}
   <div className="w-full h-[5px] bg-red-800 flex justify-between items-center px-1">
@@ -76,11 +132,15 @@ export default function Home() {
       </h2>
     </div>
 
-    <div className="border-y border-zinc-800/80 py-2 my-4 w-full flex justify-between items-center">
-      <h2 className="font-serif text-sm tracking-[0.4em] text-zinc-300 uppercase">
+    <div className="border-y border-zinc-800/80 py-2 my-4 w-full flex flex-col justify-between gap-2">
+      <h2 className="font-serif text-sm tracking-[0.4em] text-zinc-300 uppercase flex left">
         ARCHIVE
       </h2>
+      <button className="text-xs font-nomo flex transition-colors">page1</button>
+      <button className="text-xs font-mono flex transition-colors">page2</button>
+      <button className="text-xs font-mono flex transition-colors">page3</button>
       <span className="text-[10px] text-zinc-600 font-mono">[ 02 ]</span>
+
     </div>
 
     <div className="flex justify-center my-6">
